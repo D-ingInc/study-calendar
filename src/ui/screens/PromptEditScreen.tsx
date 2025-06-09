@@ -1,16 +1,16 @@
-// src/ui/screens/PromptCreateScreen.tsx
+// src/ui/screens/PromptEditScreen.tsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
   ScrollView,
   Alert,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { usePrompts } from '../../contexts/AppContext';
 import { Input, Button, Card, ModalPicker } from '../../components/common';
 import { Prompt, PromptLabel } from '../../types/models';
+import { RootStackScreenProps } from '../../types/navigation';
 
 const labelOptions = [
   { label: 'ChatGPT', value: PromptLabel.CHATGPT },
@@ -21,14 +21,26 @@ const labelOptions = [
   { label: 'その他', value: PromptLabel.OTHER },
 ];
 
-export const PromptCreateScreen: React.FC = () => {
-  const navigation = useNavigation();
-  const { createPrompt } = usePrompts();
+type Props = RootStackScreenProps<'PromptEdit'>;
+
+export const PromptEditScreen: React.FC<Props> = ({ navigation, route }) => {
+  const { prompts, updatePrompt } = usePrompts();
+  const { promptId } = route.params;
 
   const [content, setContent] = useState('');
   const [label, setLabel] = useState(PromptLabel.CHATGPT);
   const [memo, setMemo] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  const prompt = prompts.find(p => p.id === promptId);
+
+  useEffect(() => {
+    if (prompt) {
+      setContent(prompt.content);
+      setLabel(prompt.label);
+      setMemo(prompt.memo || '');
+    }
+  }, [prompt]);
 
   const handleSave = async () => {
     if (!content.trim()) {
@@ -36,26 +48,45 @@ export const PromptCreateScreen: React.FC = () => {
       return;
     }
 
+    if (!prompt) {
+      Alert.alert('エラー', 'プロンプトが見つかりません');
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const newPrompt: Omit<Prompt, 'id' | 'createdAt' | 'updatedAt'> = {
+      const updatedPrompt: Partial<Prompt> = {
         content: content.trim(),
         label,
         memo: memo.trim() || undefined,
       };
 
-      await createPrompt(newPrompt);
+      await updatePrompt(promptId, updatedPrompt);
       if (navigation.canGoBack()) {
         navigation.goBack();
       } else {
         navigation.navigate('MainTabs', { screen: 'Prompts' });
       }
     } catch {
-      Alert.alert('エラー', 'プロンプトの保存に失敗しました');
+      Alert.alert('エラー', 'プロンプトの更新に失敗しました');
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (!prompt) {
+    return (
+      <View style={styles.container}>
+        <Card>
+          <Input
+            label="エラー"
+            value="プロンプトが見つかりません"
+            editable={false}
+          />
+        </Card>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container}>
@@ -95,7 +126,7 @@ export const PromptCreateScreen: React.FC = () => {
             style={styles.button}
           />
           <Button
-            title="保存"
+            title="更新"
             onPress={handleSave}
             loading={isLoading}
             style={styles.button}
@@ -113,24 +144,6 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 16,
-  },
-  field: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
-  },
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: '#DDD',
-    borderRadius: 8,
-    backgroundColor: '#FFF',
-  },
-  picker: {
-    height: 50,
   },
   buttons: {
     flexDirection: 'row',

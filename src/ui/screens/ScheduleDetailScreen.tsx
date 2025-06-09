@@ -40,7 +40,8 @@ export const ScheduleDetailScreen: React.FC<Props> = ({ navigation, route }) => 
 
   useEffect(() => {
     if (!schedule) {
-      navigation.goBack();
+      // 予定が見つからない場合はカレンダー画面に戻る
+      navigation.navigate('MainTabs', { screen: 'Calendar' });
     }
   }, [schedule, navigation]);
 
@@ -61,7 +62,8 @@ export const ScheduleDetailScreen: React.FC<Props> = ({ navigation, route }) => 
             setIsDeleting(true);
             try {
               await deleteSchedule(scheduleId);
-              navigation.goBack();
+              // 削除成功後はカレンダー画面に戻る
+              navigation.navigate('MainTabs', { screen: 'Calendar' });
             } catch {
               Alert.alert('エラー', '削除に失敗しました');
               setIsDeleting(false);
@@ -105,12 +107,7 @@ export const ScheduleDetailScreen: React.FC<Props> = ({ navigation, route }) => 
           <View style={styles.infoRow}>
             <Text style={styles.label}>日付:</Text>
             <Text style={styles.value}>
-              {new Date(schedule.date).toLocaleDateString('ja-JP', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                weekday: 'long',
-              })}
+              {new Date(schedule.date).getFullYear() + '/' + String(new Date(schedule.date).getMonth() + 1).padStart(2, '0') + '/' + String(new Date(schedule.date).getDate()).padStart(2, '0')}
             </Text>
           </View>
 
@@ -153,7 +150,7 @@ export const ScheduleDetailScreen: React.FC<Props> = ({ navigation, route }) => 
               <View key={record.id} style={styles.recordItem}>
                 <View style={styles.recordHeader}>
                   <Text style={styles.recordDate}>
-                    {new Date(record.completedAt).toLocaleDateString('ja-JP')}
+                    {new Date(record.completedAt).getFullYear() + '/' + String(new Date(record.completedAt).getMonth() + 1).padStart(2, '0') + '/' + String(new Date(record.completedAt).getDate()).padStart(2, '0')}
                   </Text>
                   <Text style={styles.recordDuration}>
                     {record.duration}分

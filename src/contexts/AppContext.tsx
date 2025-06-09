@@ -44,7 +44,7 @@ type AppAction =
   | { type: 'UPDATE_PROMPT'; payload: Prompt }
   | { type: 'DELETE_PROMPT'; payload: string }
   | { type: 'SET_SETTINGS'; payload: AppSettings }
-  | { type: 'SET_STATISTICS'; payload: StudyStatistics };
+  | { type: 'SET_STATISTICS'; payload: StudyStatistics | null };
 
 // 初期状態
 const initialState: AppState = {
@@ -303,7 +303,13 @@ export function useStudyRecords() {
       }
       
       // 統計情報を更新
-      repositories.statistics.updateStatisticsCache();
+      try {
+        await repositories.statistics.updateStatisticsCache();
+        const updatedStats = await repositories.statistics.getOverallStatistics();
+        dispatch({ type: 'SET_STATISTICS', payload: updatedStats });
+      } catch (error) {
+        console.error('統計情報の更新に失敗しました:', error);
+      }
       
       return newRecord;
     } catch (error) {
@@ -321,12 +327,30 @@ export function useStudyRecords() {
       .sort((a, b) => b.completedAt.localeCompare(a.completedAt))
       .slice(0, limit);
   };
+
+  const clearAllRecords = async () => {
+    try {
+      // すべての記録を削除
+      await repositories.record.clear();
+      dispatch({ type: 'SET_RECORDS', payload: [] });
+      
+      // 統計情報をリセット
+      await repositories.statistics.clearStatistics();
+      dispatch({ type: 'SET_STATISTICS', payload: null });
+      
+      return true;
+    } catch (error) {
+      dispatch({ type: 'SET_ERROR', payload: '統計情報の削除に失敗しました' });
+      throw error;
+    }
+  };
   
   return {
     records: state.records,
     createRecord,
     getRecordsBySchedule,
     getRecentRecords,
+    clearAllRecords,
   };
 }
 

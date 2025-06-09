@@ -58,7 +58,7 @@ export const PromptsScreen: React.FC<Props> = ({ navigation }) => {
             backgroundColor={labelColors[item.label]}
           />
           <Text style={styles.promptDate}>
-            {new Date(item.createdAt).toLocaleDateString('ja-JP')}
+            {new Date(item.createdAt).getFullYear() + '/' + String(new Date(item.createdAt).getMonth() + 1).padStart(2, '0') + '/' + String(new Date(item.createdAt).getDate()).padStart(2, '0')}
           </Text>
         </View>
         <Text style={styles.promptContent} numberOfLines={3}>

@@ -286,6 +286,10 @@ export class StudyRecordRepository
       .sort((a, b) => b.completedAt.localeCompare(a.completedAt))
       .slice(0, limit);
   }
+
+  async clear(): Promise<void> {
+    await this.saveAll([]);
+  }
 }
 
 // プロンプトリポジトリ実装
@@ -445,6 +449,10 @@ export class StatisticsRepository implements IStatisticsRepository {
   async updateStatisticsCache(): Promise<void> {
     const statistics = await this.getOverallStatistics();
     await AsyncStorage.setItem(STORAGE_KEYS.STATISTICS_CACHE, JSON.stringify(statistics));
+  }
+
+  async clearStatistics(): Promise<void> {
+    await AsyncStorage.removeItem(STORAGE_KEYS.STATISTICS_CACHE);
   }
 
   private calculateStatistics(records: StudyRecord[], prompts: Prompt[]): StudyStatistics {

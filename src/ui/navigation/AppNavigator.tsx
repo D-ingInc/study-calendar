@@ -13,9 +13,11 @@ import { PromptsScreen } from '../screens/PromptsScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { ScheduleCreateScreen } from '../screens/ScheduleCreateScreen';
 import { ScheduleDetailScreen } from '../screens/ScheduleDetailScreen';
+import { ScheduleEditScreen } from '../screens/ScheduleEditScreen';
 import { StudyRecordScreen } from '../screens/StudyRecordScreen';
 import { PromptCreateScreen } from '../screens/PromptCreateScreen';
 import { PromptDetailScreen } from '../screens/PromptDetailScreen';
+import { PromptEditScreen } from '../screens/PromptEditScreen';
 
 // Navigation Types
 import { RootStackParamList, MainTabParamList } from '../../types/navigation';
@@ -109,6 +111,11 @@ export function AppNavigator() {
           options={{ title: '予定の詳細' }}
         />
         <Stack.Screen
+          name="ScheduleEdit"
+          component={ScheduleEditScreen}
+          options={{ title: '予定を編集' }}
+        />
+        <Stack.Screen
           name="StudyRecord"
           component={StudyRecordScreen}
           options={{ title: '学習を記録' }}
@@ -122,6 +129,11 @@ export function AppNavigator() {
           name="PromptDetail"
           component={PromptDetailScreen}
           options={{ title: 'プロンプトの詳細' }}
+        />
+        <Stack.Screen
+          name="PromptEdit"
+          component={PromptEditScreen}
+          options={{ title: 'プロンプトを編集' }}
         />
       </Stack.Navigator>
     </NavigationContainer>

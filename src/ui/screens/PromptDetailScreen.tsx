@@ -60,7 +60,8 @@ export const PromptDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             setIsDeleting(true);
             try {
               await deletePrompt(promptId);
-              navigation.goBack();
+              // 削除成功後はプロンプト一覧画面に戻る
+              navigation.navigate('MainTabs', { screen: 'Prompts' });
             } catch {
               Alert.alert('エラー', '削除に失敗しました');
               setIsDeleting(false);
@@ -95,7 +96,7 @@ export const PromptDetailScreen: React.FC<Props> = ({ navigation, route }) => {
               backgroundColor={labelColors[prompt.label]}
             />
             <Text style={styles.date}>
-              {new Date(prompt.createdAt).toLocaleDateString('ja-JP')}
+              {new Date(prompt.createdAt).getFullYear() + '/' + String(new Date(prompt.createdAt).getMonth() + 1).padStart(2, '0') + '/' + String(new Date(prompt.createdAt).getDate()).padStart(2, '0')}
             </Text>
           </View>
 
@@ -113,11 +114,11 @@ export const PromptDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 
           <View style={styles.metadata}>
             <Text style={styles.metadataText}>
-              作成日: {new Date(prompt.createdAt).toLocaleString('ja-JP')}
+              作成日: {new Date(prompt.createdAt).getFullYear() + '/' + String(new Date(prompt.createdAt).getMonth() + 1).padStart(2, '0') + '/' + String(new Date(prompt.createdAt).getDate()).padStart(2, '0')}
             </Text>
             {prompt.updatedAt !== prompt.createdAt && (
               <Text style={styles.metadataText}>
-                更新日: {new Date(prompt.updatedAt).toLocaleString('ja-JP')}
+                更新日: {new Date(prompt.updatedAt).getFullYear() + '/' + String(new Date(prompt.updatedAt).getMonth() + 1).padStart(2, '0') + '/' + String(new Date(prompt.updatedAt).getDate()).padStart(2, '0')}
               </Text>
             )}
           </View>

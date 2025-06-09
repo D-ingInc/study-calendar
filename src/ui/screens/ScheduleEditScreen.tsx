@@ -1,6 +1,6 @@
-// src/ui/screens/ScheduleCreateScreen.tsx
+// src/ui/screens/ScheduleEditScreen.tsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -46,17 +46,18 @@ const repeatOptions = [
   { label: '毎月', value: RepeatType.MONTHLY },
 ];
 
-type Props = RootStackScreenProps<'ScheduleCreate'>;
+type Props = RootStackScreenProps<'ScheduleEdit'>;
 
-export const ScheduleCreateScreen: React.FC<Props> = ({ navigation, route }) => {
-  const { createSchedule } = useStudySchedules();
+export const ScheduleEditScreen: React.FC<Props> = ({ navigation, route }) => {
+  const { schedules, updateSchedule } = useStudySchedules();
   const { settings } = useSettings();
+  const { scheduleId, schedule: passedSchedule } = route.params;
 
-  const initialDate = route.params?.date || new Date().toISOString().split('T')[0];
+  const existingSchedule = schedules.find(s => s.id === scheduleId) || passedSchedule;
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [date, setDate] = useState(new Date(initialDate));
+  const [date, setDate] = useState(new Date());
   const [hasTime, setHasTime] = useState(false);
   const [startTime, setStartTime] = useState(new Date());
   const [endTime, setEndTime] = useState(new Date());
@@ -71,22 +72,51 @@ export const ScheduleCreateScreen: React.FC<Props> = ({ navigation, route }) => 
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  useEffect(() => {
+    if (existingSchedule) {
+      setTitle(existingSchedule.title);
+      setDescription(existingSchedule.description || '');
+      setDate(new Date(existingSchedule.date));
+      setHasTime(!!existingSchedule.startTime);
+      if (existingSchedule.startTime) {
+        const [hours, minutes] = existingSchedule.startTime.split(':');
+        const startDate = new Date();
+        startDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+        setStartTime(startDate);
+      }
+      if (existingSchedule.endTime) {
+        const [hours, minutes] = existingSchedule.endTime.split(':');
+        const endDate = new Date();
+        endDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+        setEndTime(endDate);
+      }
+      setCategory(existingSchedule.category);
+      setIsNotificationEnabled(existingSchedule.isNotificationEnabled);
+      setNotificationTime(existingSchedule.notificationTime || settings.defaultNotificationTime);
+      setRepeatType(existingSchedule.repeatPattern?.type || RepeatType.NONE);
+    }
+  }, [existingSchedule, settings.defaultNotificationTime]);
+
   const handleSave = async () => {
     if (!title.trim()) {
       Alert.alert('エラー', 'タイトルを入力してください');
       return;
     }
 
+    if (!existingSchedule) {
+      Alert.alert('エラー', '予定が見つかりません');
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const newSchedule: Omit<StudySchedule, 'id' | 'createdAt' | 'updatedAt'> = {
+      const updatedSchedule: Partial<StudySchedule> = {
         title: title.trim(),
         description: description.trim(),
         date: date.toISOString().split('T')[0],
         startTime: hasTime ? startTime.toTimeString().slice(0, 5) : undefined,
         endTime: hasTime ? endTime.toTimeString().slice(0, 5) : undefined,
         category,
-        isCompleted: false,
         isNotificationEnabled,
         notificationTime: isNotificationEnabled ? notificationTime : undefined,
         repeatPattern: repeatType !== RepeatType.NONE
@@ -94,18 +124,32 @@ export const ScheduleCreateScreen: React.FC<Props> = ({ navigation, route }) => 
           : undefined,
       };
 
-      await createSchedule(newSchedule);
+      await updateSchedule(scheduleId, updatedSchedule);
       if (navigation.canGoBack()) {
         navigation.goBack();
       } else {
         navigation.navigate('MainTabs', { screen: 'Calendar' });
       }
     } catch {
-      Alert.alert('エラー', '予定の作成に失敗しました');
+      Alert.alert('エラー', '予定の更新に失敗しました');
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (!existingSchedule) {
+    return (
+      <View style={styles.container}>
+        <Card>
+          <Input
+            label="エラー"
+            value="予定が見つかりません"
+            editable={false}
+          />
+        </Card>
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView 
@@ -398,7 +442,7 @@ export const ScheduleCreateScreen: React.FC<Props> = ({ navigation, route }) => 
             style={styles.button}
           />
           <Button
-            title="保存"
+            title="更新"
             onPress={handleSave}
             loading={isLoading}
             style={styles.button}
@@ -448,15 +492,6 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 8,
   },
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: '#DDD',
-    borderRadius: 8,
-    backgroundColor: '#FFF',
-  },
-  picker: {
-    height: 50,
-  },
   timeFields: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -473,10 +508,6 @@ const styles = StyleSheet.create({
     flex: 1,
     marginHorizontal: 4,
   },
-  doneButton: {
-    marginTop: 8,
-    alignSelf: 'flex-end',
-  },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -486,7 +517,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    paddingBottom: 34, // SafeAreaの分
+    paddingBottom: 34,
   },
   modalHeader: {
     flexDirection: 'row',

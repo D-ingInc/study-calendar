@@ -73,7 +73,16 @@ export const StudyRecordScreen: React.FC<Props> = ({ navigation, route }) => {
       Alert.alert(
         '完了',
         '学習記録を保存しました',
-        [{ text: 'OK', onPress: () => navigation.goBack() }]
+        [{ 
+          text: 'OK', 
+          onPress: () => {
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            } else {
+              navigation.navigate('MainTabs', { screen: 'Calendar' });
+            }
+          }
+        }]
       );
     } catch {
       Alert.alert('エラー', '記録の保存に失敗しました');

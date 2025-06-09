@@ -69,7 +69,7 @@ export const StatisticsScreen: React.FC = () => {
       <View style={styles.content}>
         {/* ストリーク情報 */}
         <Card style={styles.streakCard}>
-          <Text style={styles.cardTitle}>学習継続</Text>
+          <Text style={styles.cardTitleBlue}>学習継続</Text>
           <View style={styles.streakContainer}>
             <View style={styles.streakItem}>
               <Text style={styles.streakNumber}>{statistics.currentStreak}</Text>
@@ -170,6 +170,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#333',
+    marginBottom: 12,
+  },
+  cardTitleBlue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
     marginBottom: 12,
   },
   streakContainer: {
