@@ -35,3 +35,7 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+# Documentation and analysis files
+claude.md
+architecture-analysis.md
